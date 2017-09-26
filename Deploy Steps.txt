@@ -1,0 +1,10 @@
+Step 1:		Compile sol file
+Step 2:		Publish Token Contract (GigaGivingToken), with total coins (13,000,000), token name "Giga Coin", decimal places (18), and token symbol "GC"
+Step 3:		Publish ICO Contract (GigaGivingICO), with the account ID to fund, and the account address of the Giga Coin token.
+Step 4: 	Transfer 10,000,000 Giga Coins to the ICO contract.
+Step 5: 	Transfer 3,000,000 Giga Coins to the funding account.
+Step 6:		User Accounts send Ether to the ICO Contract, and are given Giga Coins in return on a phase based scale.
+Step 7: 	35 Days after Nov. 15 - contract concludes.
+
+13000000, "Giga Coin", 18, "GC"
+"0x14723a09acff6d2a60dcdf7aa4aff308fddc160c", "0x83ea36a764f46963a2bb024c43889a82a926a041"
