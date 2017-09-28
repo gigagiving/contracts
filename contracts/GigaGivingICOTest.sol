@@ -101,7 +101,6 @@ contract StandardToken is Token {
     mapping (address => mapping (address => uint256)) allowed;
 }
 
-
 /*
 This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20) as well as the following OPTIONAL extras intended for use by humans.
 
@@ -127,22 +126,16 @@ contract GigaGivingTokenTest is StandardToken {
     They allow one to customise the token contract & in no way influences the core functionality.
     Some wallets/interfaces might not even bother to look at this information.
     */
-    string public name;                   //fancy name: eg Simon Bucks
-    uint8 public decimals;                //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
-    string public symbol;                 //An identifier: eg SBX
-    string public version = "GGTT0.1";       //human 0.1 standard. Just an arbitrary versioning scheme.
+    string public constant NAME = "Giga Coin";
+    string public constant SYMBOL = "GC";
+    uint256 public constant DECIMALS = 0;
+    uint256 public constant TOTAL_TOKENS = 15000000;
+    uint256 public constant  CROWDSALE_TOKENS = 12000000;  
+    string public constant VERSION = "GC.1";    // human 0.1 standard. Just an arbitrary versioning scheme.
 
-    function GigaGivingTokenTest (
-        uint256 _initialAmount,
-        string _tokenName, 
-        uint8 _decimalUnits,
-        string _tokenSymbol
-        ) public {
-        balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
-        totalSupply = _initialAmount;                        // Update total supply
-        name = _tokenName;                                   // Set the name for display purposes
-        decimals = _decimalUnits;                            // Amount of decimals for display purposes
-        symbol = _tokenSymbol;                               // Set the symbol for display purposes
+    function GigaGivingTokenTest () public {
+        balances[msg.sender] = TOTAL_TOKENS; 
+        totalSupply = TOTAL_TOKENS;
     }
 
     /* Approves and then calls the receiving contract */
@@ -158,50 +151,87 @@ contract GigaGivingTokenTest is StandardToken {
     }
 }
 
-contract GigaGivingICOTest {
-    address public beneficiary;
-    uint public fundingGoal;
-    uint public amountRaised;
-    uint public deadline;
-    uint public p1Price;
-    uint public p2Price;
-    uint public p3Price;
-    uint public p4Price;
-    uint public p5Price;
-    uint public startPoint;
-    uint public tokenSupply;
 
+
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+
+  function div(uint256 a, uint256 b) internal returns (uint256) {
+    // assert(b > 0); // Solidity automatically throws when dividing by 0
+    uint256 c = a / b;
+    // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+    return c;
+  }
+
+  function sub(uint256 a, uint256 b) internal returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  function add(uint256 a, uint256 b) internal returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
+
+library Math {
+  function max64(uint64 a, uint64 b) internal constant returns (uint64) {
+    return a >= b ? a : b;
+  }
+
+  function min64(uint64 a, uint64 b) internal constant returns (uint64) {
+    return a < b ? a : b;
+  }
+
+  function max256(uint256 a, uint256 b) internal constant returns (uint256) {
+    return a >= b ? a : b;
+  }
+
+  function min256(uint256 a, uint256 b) internal constant returns (uint256) {
+    return a < b ? a : b;
+  }
+}
+
+contract GigaGivingICOTest {
+    using SafeMath for uint256;
+         
+    uint256 public constant DURATION = 5 minutes;  
+
+    uint256 public constant PHASE_1_PRICE = 1600000000000000;
+    uint256 public constant PHASE_2_PRICE = 2000000000000000; 
+    uint256 public constant PHASE_3_PRICE = 2500000000000000; 
+    uint256 public constant PHASE_4_PRICE = 4000000000000000;
+    uint256 public constant PHASE_5_PRICE = 5000000000000000; 
+    uint256 public startTime;
+    uint256 public tokenSupply;
+    uint256 private fundingGoal;
+    uint256 private amountRaised;
+    address public beneficiary;
 
     GigaGivingTokenTest public tokenReward;
     mapping(address => uint256) public balanceOf;
     bool public fundingGoalReached = false;
     bool public crowdsaleClosed = false;
 
-    event GoalReached(address goalBeneficiary, uint totalAmountRaised);
-    event FundTransfer(address backer, uint amount, bool isContribution);
+    event GoalReached(address goalBeneficiary, uint256 totalAmountRaised);
+    event FundTransfer(address backer, uint256 amount, bool isContribution);
 
     /**
      * Constrctor function
      *
      * Setup the owner
      */
-    function GigaGivingICOTest (
-        address ifSuccessfulSendTo,
-        address addressOfTokenUsedAsReward,
-        uint totalTokenSupply
-    ) public {
-        beneficiary = ifSuccessfulSendTo;
-        tokenSupply = totalTokenSupply;
-        fundingGoal = 10 finney; // 10000 = 1
-        startPoint = 1506429000;
-        deadline = 1506436200;
-        p1Price = 1 szabo; // 0.000001 ETH
-        p2Price = 1 szabo; // 0.000001
-        p3Price = 1 szabo; // 0.000001
-        p4Price = 1 szabo; // 0.000001
-        p5Price = 1 szabo; // 0.000001
-        
+    function GigaGivingICOTest (address addressOfTokenUsedAsReward) public {
+        fundingGoal = 10 ether; 
+        startTime = now;
+        beneficiary = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
         tokenReward = GigaGivingTokenTest(addressOfTokenUsedAsReward);
+        tokenSupply = 12000000;
     }
 
     /**
@@ -210,33 +240,34 @@ contract GigaGivingICOTest {
      * The function without name is the default function that is called whenever anyone sends funds to a contract
      */
     function () public payable {
-        require(now >= startPoint);
+        require(now >= startTime);
         require(!crowdsaleClosed);
-        uint amount = msg.value;
-        uint total = 0;      
+        require(msg.value > 0);
+        uint256 amount = msg.value;
+        uint256 coinTotal = 0;      
         
-        if (now > startPoint + 28 days) {
-            total = amount / p5Price;
-        } else if (now > startPoint + 21 days) {
-            total = amount / p4Price;
-        } else if (now > startPoint + 14 days) {
-            total = amount / p3Price;
-        } else if (now > startPoint + 7 days) {
-            total = amount / p2Price;
+         if (now > startTime + 4 weeks) {
+            coinTotal = amount.div(PHASE_5_PRICE);
+        } else if (now > startTime + 3 weeks) {
+            coinTotal = amount.div(PHASE_4_PRICE);
+        } else if (now > startTime + 2 weeks) {
+            coinTotal = amount.div(PHASE_3_PRICE);
+        } else if (now > startTime + 1 weeks) {
+            coinTotal = amount.div(PHASE_2_PRICE);
         } else {
-            total = amount / p1Price;
+            coinTotal = amount.div(PHASE_1_PRICE);
         }
        
-        balanceOf[msg.sender] += amount;
-        amountRaised += amount;
-        tokenSupply -= total;
-        tokenReward.transfer(msg.sender, total);
+        balanceOf[msg.sender] = balanceOf[msg.sender].add(amount);
+        amountRaised = amountRaised.add(amount);
+        tokenSupply = tokenSupply.sub(coinTotal);
+        tokenReward.transfer(msg.sender, coinTotal);
         FundTransfer(msg.sender, amount, true);
     }
   
 
     modifier afterDeadline() { 
-        if (now >= deadline) {
+        if (now >= (startTime + DURATION)) {
             _;
         }
     }
