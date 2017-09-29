@@ -1,6 +1,5 @@
 pragma solidity ^0.4.13;
 
-
 contract Token {   
     uint256 public totalSupply;
     function balanceOf(address _owner) public constant returns (uint256 balance);
@@ -50,12 +49,12 @@ contract StandardToken is Token {
 }
 
 contract GigaGivingTokenTest is StandardToken {
-    string public constant NAME = "Giga Coin";
-    string public constant SYMBOL = "GC";
+    string public constant NAME = "Giga Coin Test";
+    string public constant SYMBOL = "GCT";
     uint256 public constant DECIMALS = 0;
     uint256 public constant TOTAL_TOKENS = 15000000;
     uint256 public constant  CROWDSALE_TOKENS = 12000000;  
-    string public constant VERSION = "GC.1";
+    string public constant VERSION = "GCT.2";
 
     function GigaGivingTokenTest () public {
         balances[msg.sender] = TOTAL_TOKENS; 
@@ -113,7 +112,7 @@ contract GigaGivingICOTest {
  
     address public beneficiary;
 
-    GigaGivingTokenTest public tokenReward;
+    GigaGivingToken public tokenReward;
     mapping(address => uint256) public balanceOf;
     bool public fundingGoalReached = false;
     bool public crowdsaleClosed = false;
@@ -121,11 +120,11 @@ contract GigaGivingICOTest {
     event GoalReached(address goalBeneficiary, uint256 totalAmountRaised);
     event FundTransfer(address backer, uint256 amount, bool isContribution);
     
-    function GigaGivingICOTest (address addressOfTokenUsedAsReward) public {
-        fundingGoal = 10 ether; 
+    function GigaGivingICOTest (address icoToken, address icoBeneficiary) public {
+        fundingGoal = 1000 ether; 
         startTime = now;
-        beneficiary = 0x59B025bfDC90DA9EDD9Ebe2e9C17180348335D90;
-        tokenReward = GigaGivingTokenTest(addressOfTokenUsedAsReward);
+        beneficiary = icoBeneficiary;
+        tokenReward = GigaGivingToken(icoToken);
         tokenSupply = 12000000;
     }
 
@@ -137,13 +136,13 @@ contract GigaGivingICOTest {
         uint256 amount = msg.value;
         uint256 coinTotal = 0;      
         
-        if (now > startTime + 4 weeks) {
+        if (now > startTime + 4 minutes) {
             coinTotal = amount.div(PHASE_5_PRICE);
-        } else if (now > startTime + 3 weeks) {
+        } else if (now > startTime + 3 minutes) {
             coinTotal = amount.div(PHASE_4_PRICE);
-        } else if (now > startTime + 2 weeks) {
+        } else if (now > startTime + 2 minutes) {
             coinTotal = amount.div(PHASE_3_PRICE);
-        } else if (now > startTime + 1 weeks) {
+        } else if (now > startTime + 1 minutes) {
             coinTotal = amount.div(PHASE_2_PRICE);
         } else {
             coinTotal = amount.div(PHASE_1_PRICE);

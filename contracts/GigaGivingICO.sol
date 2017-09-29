@@ -55,7 +55,7 @@ contract GigaGivingToken is StandardToken {
     uint256 public constant DECIMALS = 0;
     uint256 public constant TOTAL_TOKENS = 15000000;
     uint256 public constant  CROWDSALE_TOKENS = 12000000;  
-    string public constant VERSION = "GC.1";
+    string public constant VERSION = "GC.2";
 
     function GigaGivingToken () public {
         balances[msg.sender] = TOTAL_TOKENS; 
@@ -121,11 +121,11 @@ contract GigaGivingICO {
     event GoalReached(address goalBeneficiary, uint256 totalAmountRaised);
     event FundTransfer(address backer, uint256 amount, bool isContribution);
     
-    function GigaGivingICO () public {
+    function GigaGivingICO (address icoToken, address icoBeneficiary) public {
         fundingGoal = 1000 ether; 
         startTime = 1510765200;
-        beneficiary = 0x59B025bfDC90DA9EDD9Ebe2e9C17180348335D90;
-        tokenReward = GigaGivingToken(0x1C07020a438FEDAa1683b3857B34E62AB1530D1D);
+        beneficiary = icoBeneficiary;
+        tokenReward = GigaGivingToken(icoToken);
         tokenSupply = 12000000;
     }
 
