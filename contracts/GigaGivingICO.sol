@@ -1,69 +1,22 @@
 pragma solidity ^0.4.13;
 
 
-contract Token {
-    /* This is a slight change to the ERC20 base standard.
-    function totalSupply() constant returns (uint256 supply);
-    is replaced with:
+contract Token {   
     uint256 public totalSupply;
-    This automatically creates a getter function for the totalSupply.
-    This is moved to the base contract since public getter functions are not
-    currently recognised as an implementation of the matching abstract
-    function by the compiler.
-    */
-    /// total amount of tokens
-    uint256 public totalSupply;
-
-    /// @param _owner The address from which the balance will be retrieved
-    /// @return The balance
     function balanceOf(address _owner) public constant returns (uint256 balance);
-
-    /// @notice send `_value` token to `_to` from `msg.sender`
-    /// @param _to The address of the recipient
-    /// @param _value The amount of token to be transferred
-    /// @return Whether the transfer was successful or not
     function transfer(address _to, uint256 _value) public returns (bool success);
-
-    /// @notice send `_value` token to `_to` from `_from` on the condition it is approved by `_from`
-    /// @param _from The address of the sender
-    /// @param _to The address of the recipient
-    /// @param _value The amount of token to be transferred
-    /// @return Whether the transfer was successful or not
     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success);
-
-    /// @notice `msg.sender` approves `_spender` to spend `_value` tokens
-    /// @param _spender The address of the account able to transfer the tokens
-    /// @param _value The amount of tokens to be approved for transfer
-    /// @return Whether the approval was successful or not
     function approve(address _spender, uint256 _value) public returns (bool success);
-
-    /// @param _owner The address of the account owning tokens
-    /// @param _spender The address of the account able to transfer the tokens
-    /// @return Amount of remaining tokens allowed to spent
     function allowance(address _owner, address _spender) public constant returns (uint256 remaining);
-
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
 
-
-/*
-You should inherit from StandardToken or, for a token like you would want to
-deploy in something like Mist, see HumanStandardToken.sol.
-(This implements ONLY the standard functions and NOTHING else.
-If you deploy this, you won't have anything useful.)
-
-Implements ERC 20 Token standard: https://github.com/ethereum/EIPs/issues/20
-.*/
-
-
 contract StandardToken is Token {
+    mapping (address => uint256) balances;
+    mapping (address => mapping (address => uint256)) allowed;
 
-    function transfer(address _to, uint256 _value) public returns (bool success) {
-        //Default assumes totalSupply can't be over max (2^256 - 1).
-        //If your token leaves out totalSupply and can issue more tokens as time goes on, you need to check if it doesn't wrap.
-        //Replace the if with this one instead.
-        //require(balances[msg.sender] >= _value && balances[_to] + _value > balances[_to]);
+    function transfer(address _to, uint256 _value) public returns (bool success) {       
         address sender = msg.sender;
         require(balances[sender] >= _value);
         balances[sender] -= _value;
@@ -72,9 +25,7 @@ contract StandardToken is Token {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {
-        //same as above. Replace this line with the following if you want to protect against wrapping uints.
-        //require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value && balances[_to] + _value > balances[_to]);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {      
         require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value);
         balances[_to] += _value;
         balances[_from] -= _value;
@@ -95,153 +46,122 @@ contract StandardToken is Token {
 
     function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
       return allowed[_owner][_spender];
-    }
-
-    mapping (address => uint256) balances;
-    mapping (address => mapping (address => uint256)) allowed;
+    }    
 }
 
-
-/*
-This Token Contract implements the standard token functionality (https://github.com/ethereum/EIPs/issues/20) as well as the following OPTIONAL extras intended for use by humans.
-
-In other words. This is intended for deployment in something like a Token Factory or Mist wallet, and then used by humans.
-Imagine coins, currencies, shares, voting weight, etc.
-Machine-based, rapid creation of many tokens would not necessarily need these extra features or will be minted in other manners.
-
-1) Initial Finite Supply (upon creation one specifies how much is minted).
-2) In the absence of a token registry: Optional Decimal, Symbol & Name.
-3) Optional approveAndCall() functionality to notify a contract if an approval() has occurred.
-
-.*/
-
-
-
 contract GigaGivingToken is StandardToken {
+    string public constant NAME = "Giga Coin";
+    string public constant SYMBOL = "GC";
+    uint256 public constant DECIMALS = 0;
+    uint256 public constant TOTAL_TOKENS = 15000000;
+    uint256 public constant  CROWDSALE_TOKENS = 12000000;  
+    string public constant VERSION = "GC.1";
 
-    /* Public variables of the token */
-
-    /*
-    NOTE:
-    The following variables are OPTIONAL vanities. One does not have to include them.
-    They allow one to customise the token contract & in no way influences the core functionality.
-    Some wallets/interfaces might not even bother to look at this information.
-    */
-    string public name;                   //fancy name: eg Simon Bucks
-    uint8 public decimals;                //How many decimals to show. ie. There could 1000 base units with 3 decimals. Meaning 0.980 SBX = 980 base units. It's like comparing 1 wei to 1 ether.
-    string public symbol;                 //An identifier: eg SBX
-    string public version = "GGT0.1";       //human 0.1 standard. Just an arbitrary versioning scheme.
-
-    function GigaGivingToken (
-        uint256 _initialAmount,
-        string _tokenName, 
-        uint8 _decimalUnits,
-        string _tokenSymbol
-        ) public {
-        balances[msg.sender] = _initialAmount;               // Give the creator all initial tokens
-        totalSupply = _initialAmount;                        // Update total supply
-        name = _tokenName;                                   // Set the name for display purposes
-        decimals = _decimalUnits;                            // Amount of decimals for display purposes
-        symbol = _tokenSymbol;                               // Set the symbol for display purposes
+    function GigaGivingToken () public {
+        balances[msg.sender] = TOTAL_TOKENS; 
+        totalSupply = TOTAL_TOKENS;
     }
-
-    /* Approves and then calls the receiving contract */
+    
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
-
-        //call the receiveApproval function on the contract you want to be notified. This crafts the function signature manually so one doesn't have to include a contract in here just for this.
-        //receiveApproval(address _from, uint256 _value, address _tokenContract, bytes _extraData)
-        //it is assumed that when does this that the call *should* succeed, otherwise one would use vanilla approve instead.
         require(_spender.call(bytes4(bytes32(sha3("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData));
         return true;
     }
 }
 
-contract GigaGivingICO {
-    address public beneficiary;
-    uint public fundingGoal;
-    uint public amountRaised;
-    uint public deadline;
-    uint public p1Price;
-    uint public p2Price;
-    uint public p3Price;
-    uint public p4Price;
-    uint public p5Price;
-    uint public startPoint;
 
+
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
+
+  function div(uint256 a, uint256 b) internal returns (uint256) {    
+    uint256 c = a / b;    
+    return c;
+  }
+
+  function sub(uint256 a, uint256 b) internal returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
+
+  function add(uint256 a, uint256 b) internal returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
+
+contract GigaGivingICO {
+    using SafeMath for uint256;
+         
+    uint256 private fundingGoal;
+    uint256 private amountRaised;
+
+    uint256 public constant PHASE_1_PRICE = 1600000000000000;
+    uint256 public constant PHASE_2_PRICE = 2000000000000000; 
+    uint256 public constant PHASE_3_PRICE = 2500000000000000; 
+    uint256 public constant PHASE_4_PRICE = 4000000000000000;
+    uint256 public constant PHASE_5_PRICE = 5000000000000000; 
+    uint256 public constant DURATION = 5 weeks;  
+    uint256 public startTime;
+    uint256 public tokenSupply;
+ 
+    address public beneficiary;
 
     GigaGivingToken public tokenReward;
     mapping(address => uint256) public balanceOf;
     bool public fundingGoalReached = false;
     bool public crowdsaleClosed = false;
 
-    event GoalReached(address goalBeneficiary, uint totalAmountRaised);
-    event FundTransfer(address backer, uint amount, bool isContribution);
-
-    /**
-     * Constrctor function
-     *
-     * Setup the owner
-     */
-    function GigaGivingICO (
-        address ifSuccessfulSendTo,
-        address addressOfTokenUsedAsReward
-    ) public {
-        beneficiary = ifSuccessfulSendTo;
-        fundingGoal = 1000 ether;
-        startPoint = 1510768800; // Nov 15, 2017, 12:00pm
-        deadline = now + 35 days;
-        p1Price = 1000000000000000; // 1 ETH per 1000.                  
-        p2Price = 1111111111111111; // 1 ETH per 900.
-        p3Price = 1250000000000000; // 1 ETH per 800.
-        p4Price = 1428571428571428; // 1 ETH per 700.
-        p5Price = 2000000000000000; // 1 ETH per 500.
-        
-        tokenReward = GigaGivingToken(addressOfTokenUsedAsReward);
+    event GoalReached(address goalBeneficiary, uint256 totalAmountRaised);
+    event FundTransfer(address backer, uint256 amount, bool isContribution);
+    
+    function GigaGivingICO () public {
+        fundingGoal = 1000 ether; 
+        startTime = 1510765200;
+        beneficiary = 0x59B025bfDC90DA9EDD9Ebe2e9C17180348335D90;
+        tokenReward = GigaGivingToken(0x1C07020a438FEDAa1683b3857B34E62AB1530D1D);
+        tokenSupply = 12000000;
     }
 
-    /**
-     * Fallback function
-     *
-     * The function without name is the default function that is called whenever anyone sends funds to a contract
-     */
     function () public payable {
-        require(now >= startPoint);
+        require(now >= startTime);
+        require(now <= startTime + DURATION);
         require(!crowdsaleClosed);
-        uint amount = msg.value;
-        uint total = 0;      
+        require(msg.value > 0);
+        uint256 amount = msg.value;
+        uint256 coinTotal = 0;      
         
-        if (now > startPoint + 28 days) {
-            total = amount / p5Price;
-        } else if (now > startPoint + 21 days) {
-            total = amount / p4Price;
-        } else if (now > startPoint + 14 days) {
-            total = amount / p3Price;
-        } else if (now > startPoint + 7 days) {
-            total = amount / p2Price;
+        if (now > startTime + 4 weeks) {
+            coinTotal = amount.div(PHASE_5_PRICE);
+        } else if (now > startTime + 3 weeks) {
+            coinTotal = amount.div(PHASE_4_PRICE);
+        } else if (now > startTime + 2 weeks) {
+            coinTotal = amount.div(PHASE_3_PRICE);
+        } else if (now > startTime + 1 weeks) {
+            coinTotal = amount.div(PHASE_2_PRICE);
         } else {
-            total = amount / p1Price;
+            coinTotal = amount.div(PHASE_1_PRICE);
         }
        
-        balanceOf[msg.sender] += amount;
-        amountRaised += amount;
-        tokenReward.transfer(msg.sender, total);
+        balanceOf[msg.sender] = balanceOf[msg.sender].add(amount);
+        amountRaised = amountRaised.add(amount);
+        tokenSupply = tokenSupply.sub(coinTotal);
+        tokenReward.transfer(msg.sender, coinTotal);
         FundTransfer(msg.sender, amount, true);
-    }
-  
+    }  
 
     modifier afterDeadline() { 
-        if (now >= deadline) {
+        if (now >= (startTime + DURATION)) {
             _;
         }
     }
 
-    /**
-     * Check if goal was reached
-     *
-     * Checks if the goal or time limit has been reached and ends the campaign
-     */
     function checkGoalReached() public afterDeadline {
         if (amountRaised >= fundingGoal) {
             fundingGoalReached = true;
@@ -250,14 +170,6 @@ contract GigaGivingICO {
         crowdsaleClosed = true;
     }
 
-
-    /**
-     * Withdraw the funds
-     *
-     * Checks to see if goal or time limit has been reached, and if so, and the funding goal was reached,
-     * sends the entire amount to the beneficiary. If goal was not reached, each contributor can withdraw
-     * the amount they contributed.
-     */
     function safeWithdrawal() public afterDeadline {
         if (!fundingGoalReached) {
             uint amount = balanceOf[msg.sender];
@@ -273,9 +185,9 @@ contract GigaGivingICO {
 
         if (fundingGoalReached && beneficiary == msg.sender) {
             if (beneficiary.send(amountRaised)) {
-                FundTransfer(beneficiary, amountRaised, false);
-            } else {
-                //If we fail to send the funds to beneficiary, unlock funders balance
+                tokenReward.transfer(msg.sender, tokenSupply);
+                FundTransfer(beneficiary, amountRaised, false);                
+            } else {               
                 fundingGoalReached = false;
             }
         }
