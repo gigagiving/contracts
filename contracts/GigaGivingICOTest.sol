@@ -1,194 +1,201 @@
-// pragma solidity ^0.4.13;
+pragma solidity ^0.4.15;
 
-// contract Token {   
-//     uint256 public totalSupply;
-//     function balanceOf(address _owner) public constant returns (uint256 balance);
-//     function transfer(address _to, uint256 _value) public returns (bool success);
-//     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success);
-//     function approve(address _spender, uint256 _value) public returns (bool success);
-//     function allowance(address _owner, address _spender) public constant returns (uint256 remaining);
-//     event Transfer(address indexed _from, address indexed _to, uint256 _value);
-//     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
-// }
+/* 
+ * Giga Giving Coin and ICO Contract.
+ * 15,000,000 Coins Total.
+ * 12,000,000 Coins available for purchase.
+ */
+contract Token {   
+    uint256 public totalSupply;
+    function balanceOf(address _owner) public constant returns (uint256 balance);
+    function transfer(address _to, uint256 _value) public returns (bool success);
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success);
+    function approve(address _spender, uint256 _value) public returns (bool success);
+    function allowance(address _owner, address _spender) public constant returns (uint256 remaining);
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+}
 
-// contract StandardToken is Token {
-//     mapping (address => uint256) balances;
-//     mapping (address => mapping (address => uint256)) allowed;
+contract StandardToken is Token {
+    mapping (address => uint256) balances;
+    mapping (address => mapping (address => uint256)) allowed;
 
-//     function transfer(address _to, uint256 _value) public returns (bool success) {       
-//         address sender = msg.sender;
-//         require(balances[sender] >= _value);
-//         balances[sender] -= _value;
-//         balances[_to] += _value;
-//         Transfer(sender, _to, _value);
-//         return true;
-//     }
+    function transfer(address _to, uint256 _value) public returns (bool success) {       
+        address sender = msg.sender;
+        require(balances[sender] >= _value);
+        balances[sender] -= _value;
+        balances[_to] += _value;
+        Transfer(sender, _to, _value);
+        return true;
+    }
 
-//     function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {      
-//         require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value);
-//         balances[_to] += _value;
-//         balances[_from] -= _value;
-//         allowed[_from][msg.sender] -= _value;
-//         Transfer(_from, _to, _value);
-//         return true;
-//     }
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success) {      
+        require(balances[_from] >= _value && allowed[_from][msg.sender] >= _value);
+        balances[_to] += _value;
+        balances[_from] -= _value;
+        allowed[_from][msg.sender] -= _value;
+        Transfer(_from, _to, _value);
+        return true;
+    }
 
-//     function balanceOf(address _owner) public constant returns (uint256 balance) {
-//         return balances[_owner];
-//     }
+    function balanceOf(address _owner) public constant returns (uint256 balance) {
+        return balances[_owner];
+    }
 
-//     function approve(address _spender, uint256 _value) public returns (bool success) {
-//         allowed[msg.sender][_spender] = _value;
-//         Approval(msg.sender, _spender, _value);
-//         return true;
-//     }
+    function approve(address _spender, uint256 _value) public returns (bool success) {
+        allowed[msg.sender][_spender] = _value;
+        Approval(msg.sender, _spender, _value);
+        return true;
+    }
 
-//     function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
-//       return allowed[_owner][_spender];
-//     }    
-// }
+    function allowance(address _owner, address _spender) public constant returns (uint256 remaining) {
+      return allowed[_owner][_spender];
+    }    
+}
 
-// contract GigaGivingTokenTest is StandardToken {
-//     string public constant NAME = "Giga Coin Test";
-//     string public constant SYMBOL = "GCT";
-//     uint256 public constant DECIMALS = 0;
-//     uint256 public constant TOTAL_TOKENS = 15000000;
-//     uint256 public constant  CROWDSALE_TOKENS = 12000000;  
-//     string public constant VERSION = "GCT.2";
+library SafeMath {
+  function mul(uint256 a, uint256 b) internal returns (uint256) {
+    uint256 c = a * b;
+    assert(a == 0 || c / a == b);
+    return c;
+  }
 
-//     function GigaGivingTokenTest () public {
-//         balances[msg.sender] = TOTAL_TOKENS; 
-//         totalSupply = TOTAL_TOKENS;
-//     }
-    
-//     function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
-//         allowed[msg.sender][_spender] = _value;
-//         Approval(msg.sender, _spender, _value);
-//         require(_spender.call(bytes4(bytes32(sha3("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData));
-//         return true;
-//     }
-// }
+  function div(uint256 a, uint256 b) internal returns (uint256) {    
+    uint256 c = a / b;    
+    return c;
+  }
 
+  function sub(uint256 a, uint256 b) internal returns (uint256) {
+    assert(b <= a);
+    return a - b;
+  }
 
+  function add(uint256 a, uint256 b) internal returns (uint256) {
+    uint256 c = a + b;
+    assert(c >= a);
+    return c;
+  }
+}
 
-// library SafeMath {
-//   function mul(uint256 a, uint256 b) internal returns (uint256) {
-//     uint256 c = a * b;
-//     assert(a == 0 || c / a == b);
-//     return c;
-//   }
-
-//   function div(uint256 a, uint256 b) internal returns (uint256) {    
-//     uint256 c = a / b;    
-//     return c;
-//   }
-
-//   function sub(uint256 a, uint256 b) internal returns (uint256) {
-//     assert(b <= a);
-//     return a - b;
-//   }
-
-//   function add(uint256 a, uint256 b) internal returns (uint256) {
-//     uint256 c = a + b;
-//     assert(c >= a);
-//     return c;
-//   }
-// }
-
-// contract GigaGivingICOTest {
-//     using SafeMath for uint256;
+contract SuperToken is StandardToken {
+    using SafeMath for uint256;
          
-//     uint256 private fundingGoal;
-//     uint256 private amountRaised;
+    uint256 private fundingGoal;
+    uint256 private amountRaised;
 
-//     uint256 public constant PHASE_1_PRICE = 1600000000000000;
-//     uint256 public constant PHASE_2_PRICE = 2000000000000000; 
-//     uint256 public constant PHASE_3_PRICE = 2500000000000000; 
-//     uint256 public constant PHASE_4_PRICE = 4000000000000000;
-//     uint256 public constant PHASE_5_PRICE = 5000000000000000; 
-//     uint256 public constant DURATION = 5 minutes;  
-//     uint256 public startTime;
-//     uint256 public tokenSupply;
+    uint256 private constant PHASE_1_PRICE = 1600000000000000;
+    uint256 private constant PHASE_2_PRICE = 2000000000000000; 
+    uint256 private constant PHASE_3_PRICE = 2500000000000000; 
+    uint256 private constant PHASE_4_PRICE = 4000000000000000;
+    uint256 private constant PHASE_5_PRICE = 5000000000000000; 
+    uint256 private constant DURATION = 5 weeks;  
+
+    uint256 public constant TOTAL_TOKENS = 15000000;
+    uint256 public constant  CROWDSALE_TOKENS = 12000000;  
+    string public constant VERSION = "TST.5";
+
+    uint256 public startTime;
+    uint256 public tokenSupply;
  
-//     address public beneficiary;
+    address public creator;
+    address public beneficiary;
 
-//     GigaGivingToken public tokenReward;
-//     mapping(address => uint256) public balanceOf;
-//     bool public fundingGoalReached = false;
-//     bool public crowdsaleClosed = false;
-
-//     event GoalReached(address goalBeneficiary, uint256 totalAmountRaised);
-//     event FundTransfer(address backer, uint256 amount, bool isContribution);
+    string public name = "Super Test Token";
+    string public symbol = "STST";
+    uint256 public decimals = 0;  
     
-//     function GigaGivingICOTest (address icoToken, address icoBeneficiary) public {
-//         fundingGoal = 1000 ether; 
-//         startTime = now;
-//         beneficiary = icoBeneficiary;
-//         tokenReward = GigaGivingToken(icoToken);
-//         tokenSupply = 12000000;
-//     }
+    // GigaGivingToken public tokenReward;
+    mapping(address => uint256) public ethBalanceOf;
+    bool public fundingGoalReached = false;
+    bool public crowdsaleClosed = false;
 
-//     function () public payable {
-//         require(now >= startTime);
-//         require(now <= startTime + DURATION);
-//         require(!crowdsaleClosed);
-//         require(msg.value > 0);
-//         uint256 amount = msg.value;
-//         uint256 coinTotal = 0;      
+    event GoalReached(address goalBeneficiary, uint256 totalAmountRaised);
+    event FundTransfer(address backer, uint256 amount, bool isContribution);
+
+    function GigaGivingToken (address icoBeneficiary) public {
+        creator = msg.sender;
+        beneficiary = icoBeneficiary;
+        totalSupply = TOTAL_TOKENS;         
         
-//         if (now > startTime + 4 minutes) {
-//             coinTotal = amount.div(PHASE_5_PRICE);
-//         } else if (now > startTime + 3 minutes) {
-//             coinTotal = amount.div(PHASE_4_PRICE);
-//         } else if (now > startTime + 2 minutes) {
-//             coinTotal = amount.div(PHASE_3_PRICE);
-//         } else if (now > startTime + 1 minutes) {
-//             coinTotal = amount.div(PHASE_2_PRICE);
-//         } else {
-//             coinTotal = amount.div(PHASE_1_PRICE);
-//         }
+        balances[beneficiary] = TOTAL_TOKENS.sub(CROWDSALE_TOKENS);
+        Transfer(0x0, icoBeneficiary, TOTAL_TOKENS.sub(CROWDSALE_TOKENS));
+
+        balances[this] = CROWDSALE_TOKENS;
+        Transfer(0x0, this, CROWDSALE_TOKENS);              
+        
+        fundingGoal = 100 ether;         
+        startTime = now;              
+        tokenSupply = 12000000;
+    }   
+  
+    function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
+        allowed[msg.sender][_spender] = _value;
+        Approval(msg.sender, _spender, _value);
+        require(_spender.call(bytes4(bytes32(sha3("receiveApproval(address,uint256,address,bytes)"))), msg.sender, _value, this, _extraData));
+        return true;
+    } 
+  
+    function () public payable {
+        require(now >= startTime);
+        require(now <= startTime + DURATION);
+        require(!crowdsaleClosed);
+        require(msg.value > 0);
+        uint256 amount = msg.value;
+        uint256 coinTotal = 0;      
+        
+        if (now > startTime + 4 weeks) {
+            coinTotal = amount.div(PHASE_5_PRICE);
+        } else if (now > startTime + 3 weeks) {
+            coinTotal = amount.div(PHASE_4_PRICE);
+        } else if (now > startTime + 2 weeks) {
+            coinTotal = amount.div(PHASE_3_PRICE);
+        } else if (now > startTime + 1 weeks) {
+            coinTotal = amount.div(PHASE_2_PRICE);
+        } else {
+            coinTotal = amount.div(PHASE_1_PRICE);
+        }
        
-//         balanceOf[msg.sender] = balanceOf[msg.sender].add(amount);
-//         amountRaised = amountRaised.add(amount);
-//         tokenSupply = tokenSupply.sub(coinTotal);
-//         tokenReward.transfer(msg.sender, coinTotal);
-//         FundTransfer(msg.sender, amount, true);
-//     }  
+        ethBalanceOf[msg.sender] = ethBalanceOf[msg.sender].add(amount);
+        amountRaised = amountRaised.add(amount);
+        tokenSupply = tokenSupply.sub(coinTotal);
+        transfer(msg.sender, coinTotal);
+        FundTransfer(msg.sender, amount, true);
+    }  
 
-//     modifier afterDeadline() { 
-//         if (now >= (startTime + DURATION)) {
-//             _;
-//         }
-//     }
+    modifier afterDeadline() { 
+        if (now >= (startTime + DURATION)) {
+            _;
+        }
+    }
 
-//     function checkGoalReached() public afterDeadline {
-//         if (amountRaised >= fundingGoal) {
-//             fundingGoalReached = true;
-//             GoalReached(beneficiary, amountRaised);
-//         }
-//         crowdsaleClosed = true;
-//     }
+    function checkGoalReached() public afterDeadline {
+        if (amountRaised >= fundingGoal) {
+            fundingGoalReached = true;
+            GoalReached(beneficiary, amountRaised);
+        }
+        crowdsaleClosed = true;
+    }
 
-//     function safeWithdrawal() public afterDeadline {
-//         if (!fundingGoalReached) {
-//             uint amount = balanceOf[msg.sender];
-//             balanceOf[msg.sender] = 0;
-//             if (amount > 0) {
-//                 if (msg.sender.send(amount)) {
-//                     FundTransfer(msg.sender, amount, false);
-//                 } else {
-//                     balanceOf[msg.sender] = amount;
-//                 }
-//             }
-//         }
+    function safeWithdrawal() public afterDeadline {
+        if (!fundingGoalReached) {
+            uint amount = ethBalanceOf[msg.sender];
+            ethBalanceOf[msg.sender] = 0;
+            if (amount > 0) {
+                if (msg.sender.send(amount)) {
+                    FundTransfer(msg.sender, amount, false);
+                } else {
+                    ethBalanceOf[msg.sender] = amount;
+                }
+            }
+        }
 
-//         if (fundingGoalReached && beneficiary == msg.sender) {
-//             if (beneficiary.send(amountRaised)) {
-//                 tokenReward.transfer(msg.sender, tokenSupply);
-//                 FundTransfer(beneficiary, amountRaised, false);                
-//             } else {               
-//                 fundingGoalReached = false;
-//             }
-//         }
-//     }
-// }
+        if (fundingGoalReached && beneficiary == msg.sender) {
+            if (beneficiary.send(amountRaised)) {
+                this.transfer(msg.sender, tokenSupply);
+                FundTransfer(beneficiary, amountRaised, false);                
+            } else {               
+                fundingGoalReached = false;
+            }
+        }
+    }
+}

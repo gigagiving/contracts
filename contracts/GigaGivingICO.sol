@@ -92,11 +92,12 @@ contract GigaGivingToken is StandardToken {
 
     uint256 public constant TOTAL_TOKENS = 15000000;
     uint256 public constant  CROWDSALE_TOKENS = 12000000;  
-    string public constant VERSION = "GC.5";
+    string public constant VERSION = "GC.6";
 
     uint256 public startTime;
     uint256 public tokenSupply;
  
+    address public creator;
     address public beneficiary;
 
     string public name = "Giga Coin";
@@ -112,16 +113,20 @@ contract GigaGivingToken is StandardToken {
     event FundTransfer(address backer, uint256 amount, bool isContribution);
 
     function GigaGivingToken (address icoBeneficiary) public {
-        beneficiary = icoBeneficiary;        
-      
+        creator = msg.sender;
+        beneficiary = icoBeneficiary;
+        totalSupply = TOTAL_TOKENS;         
+        
         balances[beneficiary] = TOTAL_TOKENS.sub(CROWDSALE_TOKENS);
-        balances[this] = CROWDSALE_TOKENS;
+        Transfer(0x0, icoBeneficiary, TOTAL_TOKENS.sub(CROWDSALE_TOKENS));
 
-        totalSupply = TOTAL_TOKENS;
+        balances[this] = CROWDSALE_TOKENS;
+        Transfer(0x0, this, CROWDSALE_TOKENS);              
+        
         fundingGoal = 1000 ether;         
         startTime = 1510765200;              
         tokenSupply = 12000000;
-    }
+    }   
   
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
@@ -153,7 +158,7 @@ contract GigaGivingToken is StandardToken {
         ethBalanceOf[msg.sender] = ethBalanceOf[msg.sender].add(amount);
         amountRaised = amountRaised.add(amount);
         tokenSupply = tokenSupply.sub(coinTotal);
-        this.transfer(msg.sender, coinTotal);
+        transfer(msg.sender, coinTotal);
         FundTransfer(msg.sender, amount, true);
     }  
 
